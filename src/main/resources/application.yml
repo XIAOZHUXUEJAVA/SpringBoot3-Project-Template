@@ -1,0 +1,51 @@
+# Spring Boot 配置文件 - 公共配置
+spring:
+  profiles:
+    active: dev  # 默认激活开发环境，可选值：dev, prod
+  
+  # 文件上传配置
+  servlet:
+    multipart:
+      max-file-size: 2MB
+      max-request-size: 5MB
+  
+  # HTTP 编码配置
+  http:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+  
+  # 数据源公共配置
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+# MyBatis Plus 公共配置
+mybatis-plus:
+  # Mapper XML 文件位置
+  mapper-locations: classpath*:mapper/**/*.xml
+  # 类型别名包扫描
+  type-aliases-package: com.zhu.domain.entity
+  # 全局配置
+  global-config:
+    db-config:
+      # 逻辑删除字段
+      logic-delete-field: delFlag
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+      # 主键类型：自增
+      id-type: auto
+  # 配置
+  configuration:
+    # 驼峰命名转换
+    map-underscore-to-camel-case: true
+    # 日志实现
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+
+# 服务器公共配置
+server:
+  tomcat:
+    uri-encoding: UTF-8
+
+
+

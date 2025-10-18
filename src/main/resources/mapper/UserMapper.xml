@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zhu.mapper.UserMapper">
+
+    <!-- 基础ResultMap -->
+    <resultMap type="com.zhu.domain.entity.User" id="UserMap">
+        <id property="id" column="id" jdbcType="BIGINT"/>
+        <result property="userName" column="user_name" jdbcType="VARCHAR"/>
+        <result property="nickName" column="nick_name" jdbcType="VARCHAR"/>
+        <result property="password" column="password" jdbcType="VARCHAR"/>
+        <result property="type" column="type" jdbcType="VARCHAR"/>
+        <result property="status" column="status" jdbcType="VARCHAR"/>
+        <result property="email" column="email" jdbcType="VARCHAR"/>
+        <result property="phonenumber" column="phonenumber" jdbcType="VARCHAR"/>
+        <result property="sex" column="sex" jdbcType="VARCHAR"/>
+        <result property="avatar" column="avatar" jdbcType="VARCHAR"/>
+        <result property="createBy" column="create_by" jdbcType="BIGINT"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="updateBy" column="update_by" jdbcType="BIGINT"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="delFlag" column="del_flag" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <!-- 公共SQL片段 - 基础字段 -->
+    <sql id="Base_Column_List">
+        id, user_name, nick_name, password, type, status, email, 
+        phonenumber, sex, avatar, create_by, create_time, 
+        update_by, update_time, del_flag
+    </sql>
+
+    <!-- 复杂查询1: 多条件动态查询用户（带分页） -->
+    <select id="selectUsersByCondition" resultMap="UserMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM sys_user
+        <where>
+            del_flag = 0
+            <if test="userName != null and userName != ''">
+                AND user_name LIKE CONCAT('%', #{userName}, '%')
+            </if>
+            <if test="nickName != null and nickName != ''">
+                AND nick_name LIKE CONCAT('%', #{nickName}, '%')
+            </if>
+            <if test="email != null and email != ''">
+                AND email = #{email}
+            </if>
+            <if test="phonenumber != null and phonenumber != ''">
+                AND phonenumber = #{phonenumber}
+            </if>
+            <if test="status != null and status != ''">
+                AND status = #{status}
+            </if>
+            <if test="type != null and type != ''">
+                AND type = #{type}
+            </if>
+            <if test="sex != null and sex != ''">
+                AND sex = #{sex}
+            </if>
+            <if test="startTime != null">
+                AND create_time &gt;= #{startTime}
+            </if>
+            <if test="endTime != null">
+                AND create_time &lt;= #{endTime}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 复杂查询2: 统计各类型用户数量 -->
+    <select id="countUsersByType" resultType="java.util.Map">
+        SELECT
+            type AS userType,
+            COUNT(*) AS count,
+            COUNT(CASE WHEN status = '0' THEN 1 END) AS activeCount,
+            COUNT(CASE WHEN status = '1' THEN 1 END) AS inactiveCount
+        FROM sys_user
+        WHERE del_flag = 0
+        GROUP BY type
+    </select>
+
+    <!-- 复杂查询3: 查询用户统计信息（包含创建时间范围） -->
+    <select id="getUserStatistics" resultType="java.util.Map">
+        SELECT
+            COUNT(*) AS totalUsers,
+            COUNT(CASE WHEN type = '1' THEN 1 END) AS adminCount,
+            COUNT(CASE WHEN type = '0' THEN 1 END) AS normalCount,
+            COUNT(CASE WHEN status = '0' THEN 1 END) AS activeUsers,
+            COUNT(CASE WHEN status = '1' THEN 1 END) AS inactiveUsers,
+            COUNT(CASE WHEN sex = '0' THEN 1 END) AS maleCount,
+            COUNT(CASE WHEN sex = '1' THEN 1 END) AS femaleCount,
+            DATE_FORMAT(MIN(create_time), '%Y-%m-%d') AS earliestRegisterDate,
+            DATE_FORMAT(MAX(create_time), '%Y-%m-%d') AS latestRegisterDate
+        FROM sys_user
+        WHERE del_flag = 0
+        <if test="startTime != null">
+            AND create_time &gt;= #{startTime}
+        </if>
+        <if test="endTime != null">
+            AND create_time &lt;= #{endTime}
+        </if>
+    </select>
+
+    <!-- 复杂查询4: 批量查询用户（通过ID列表） -->
+    <select id="selectUsersByIds" resultMap="UserMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM sys_user
+        WHERE del_flag = 0
+        AND id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 复杂查询5: 查询最近注册的用户 -->
+    <select id="selectRecentUsers" resultMap="UserMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM sys_user
+        WHERE del_flag = 0
+        <if test="days != null and days > 0">
+            AND create_time &gt;= DATE_SUB(NOW(), INTERVAL #{days} DAY)
+        </if>
+        ORDER BY create_time DESC
+        <if test="limit != null and limit > 0">
+            LIMIT #{limit}
+        </if>
+    </select>
+
+    <!-- 复杂查询6: 模糊搜索用户（多字段OR查询） -->
+    <select id="searchUsers" resultMap="UserMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM sys_user
+        <where>
+            del_flag = 0
+            <if test="keyword != null and keyword != ''">
+                AND (
+                user_name LIKE CONCAT('%', #{keyword}, '%')
+                OR nick_name LIKE CONCAT('%', #{keyword}, '%')
+                OR email LIKE CONCAT('%', #{keyword}, '%')
+                OR phonenumber LIKE CONCAT('%', #{keyword}, '%')
+                )
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 复杂查询7: 查询用户及其创建者信息（自关联查询） -->
+    <select id="selectUsersWithCreator" resultType="java.util.Map">
+        SELECT
+            u.id,
+            u.user_name,
+            u.nick_name,
+            u.email,
+            u.status,
+            u.create_time,
+            c.user_name AS creatorName,
+            c.nick_name AS creatorNickName
+        FROM sys_user u
+        LEFT JOIN sys_user c ON u.create_by = c.id
+        WHERE u.del_flag = 0
+        <if test="status != null and status != ''">
+            AND u.status = #{status}
+        </if>
+        ORDER BY u.create_time DESC
+    </select>
+
+    <!-- 复杂查询8: 批量更新用户状态 -->
+    <update id="batchUpdateStatus">
+        UPDATE sys_user
+        SET status = #{status},
+            update_by = #{updateBy},
+            update_time = NOW()
+        WHERE del_flag = 0
+        AND id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <!-- 复杂查询9: 按月统计用户注册数量 -->
+    <select id="countUsersByMonth" resultType="java.util.Map">
+        SELECT
+            DATE_FORMAT(create_time, '%Y-%m') AS month,
+            COUNT(*) AS count
+        FROM sys_user
+        WHERE del_flag = 0
+        <if test="year != null">
+            AND YEAR(create_time) = #{year}
+        </if>
+        GROUP BY DATE_FORMAT(create_time, '%Y-%m')
+        ORDER BY month DESC
+    </select>
+
+    <!-- 复杂查询10: 动态更新用户信息（只更新非空字段） -->
+    <update id="updateUserSelective">
+        UPDATE sys_user
+        <set>
+            <if test="userName != null and userName != ''">
+                user_name = #{userName},
+            </if>
+            <if test="nickName != null and nickName != ''">
+                nick_name = #{nickName},
+            </if>
+            <if test="password != null and password != ''">
+                password = #{password},
+            </if>
+            <if test="email != null and email != ''">
+                email = #{email},
+            </if>
+            <if test="phonenumber != null and phonenumber != ''">
+                phonenumber = #{phonenumber},
+            </if>
+            <if test="sex != null and sex != ''">
+                sex = #{sex},
+            </if>
+            <if test="avatar != null and avatar != ''">
+                avatar = #{avatar},
+            </if>
+            <if test="status != null and status != ''">
+                status = #{status},
+            </if>
+            <if test="type != null and type != ''">
+                type = #{type},
+            </if>
+            update_by = #{updateBy},
+            update_time = NOW()
+        </set>
+        WHERE id = #{id} AND del_flag = 0
+    </update>
+
+</mapper>
+
