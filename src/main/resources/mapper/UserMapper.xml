@@ -21,10 +21,49 @@
         <result property="delFlag" column="del_flag" jdbcType="INTEGER"/>
     </resultMap>
 
+    <!-- UserDetailVO ResultMap（用于关联查询） -->
+    <resultMap type="com.zhu.domain.vo.uservo.UserDetailVO" id="UserDetailVOMap">
+        <id property="id" column="id" jdbcType="BIGINT"/>
+        <result property="userName" column="user_name" jdbcType="VARCHAR"/>
+        <result property="nickName" column="nick_name" jdbcType="VARCHAR"/>
+        <result property="email" column="email" jdbcType="VARCHAR"/>
+        <result property="status" column="status" jdbcType="VARCHAR"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="creatorName" column="creatorName" jdbcType="VARCHAR"/>
+        <result property="creatorNickName" column="creatorNickName" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!-- UserTypeStatisticsVO ResultMap -->
+    <resultMap type="com.zhu.domain.vo.uservo.UserTypeStatisticsVO" id="UserTypeStatisticsVOMap">
+        <result property="userType" column="userType" jdbcType="VARCHAR"/>
+        <result property="count" column="count" jdbcType="BIGINT"/>
+        <result property="activeCount" column="activeCount" jdbcType="BIGINT"/>
+        <result property="inactiveCount" column="inactiveCount" jdbcType="BIGINT"/>
+    </resultMap>
+
+    <!-- UserStatisticsVO ResultMap -->
+    <resultMap type="com.zhu.domain.vo.uservo.UserStatisticsVO" id="UserStatisticsVOMap">
+        <result property="totalUsers" column="totalUsers" jdbcType="BIGINT"/>
+        <result property="adminCount" column="adminCount" jdbcType="BIGINT"/>
+        <result property="normalCount" column="normalCount" jdbcType="BIGINT"/>
+        <result property="activeUsers" column="activeUsers" jdbcType="BIGINT"/>
+        <result property="inactiveUsers" column="inactiveUsers" jdbcType="BIGINT"/>
+        <result property="maleCount" column="maleCount" jdbcType="BIGINT"/>
+        <result property="femaleCount" column="femaleCount" jdbcType="BIGINT"/>
+        <result property="earliestRegisterDate" column="earliestRegisterDate" jdbcType="VARCHAR"/>
+        <result property="latestRegisterDate" column="latestRegisterDate" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!-- UserMonthStatisticsVO ResultMap -->
+    <resultMap type="com.zhu.domain.vo.uservo.UserMonthStatisticsVO" id="UserMonthStatisticsVOMap">
+        <result property="month" column="month" jdbcType="VARCHAR"/>
+        <result property="count" column="count" jdbcType="BIGINT"/>
+    </resultMap>
+
     <!-- 公共SQL片段 - 基础字段 -->
     <sql id="Base_Column_List">
-        id, user_name, nick_name, password, type, status, email, 
-        phonenumber, sex, avatar, create_by, create_time, 
+        id, user_name, nick_name, password, type, status, email,
+        phonenumber, sex, avatar, create_by, create_time,
         update_by, update_time, del_flag
     </sql>
 
@@ -67,7 +106,7 @@
     </select>
 
     <!-- 复杂查询2: 统计各类型用户数量 -->
-    <select id="countUsersByType" resultType="java.util.Map">
+    <select id="countUsersByType" resultMap="UserTypeStatisticsVOMap">
         SELECT
             type AS userType,
             COUNT(*) AS count,
@@ -79,7 +118,7 @@
     </select>
 
     <!-- 复杂查询3: 查询用户统计信息（包含创建时间范围） -->
-    <select id="getUserStatistics" resultType="java.util.Map">
+    <select id="getUserStatistics" resultMap="UserStatisticsVOMap">
         SELECT
             COUNT(*) AS totalUsers,
             COUNT(CASE WHEN type = '1' THEN 1 END) AS adminCount,
@@ -148,7 +187,7 @@
     </select>
 
     <!-- 复杂查询7: 查询用户及其创建者信息（自关联查询） -->
-    <select id="selectUsersWithCreator" resultType="java.util.Map">
+    <select id="selectUsersWithCreator" resultMap="UserDetailVOMap">
         SELECT
             u.id,
             u.user_name,
@@ -181,7 +220,7 @@
     </update>
 
     <!-- 复杂查询9: 按月统计用户注册数量 -->
-    <select id="countUsersByMonth" resultType="java.util.Map">
+    <select id="countUsersByMonth" resultMap="UserMonthStatisticsVOMap">
         SELECT
             DATE_FORMAT(create_time, '%Y-%m') AS month,
             COUNT(*) AS count

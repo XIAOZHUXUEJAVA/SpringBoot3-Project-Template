@@ -1,7 +1,7 @@
-package com.zhu.utils;
+package com.zhu.common.result;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.zhu.enums.AppHttpCodeEnum;
+import com.zhu.common.enums.AppHttpCodeEnum;
 
 import java.io.Serializable;
 

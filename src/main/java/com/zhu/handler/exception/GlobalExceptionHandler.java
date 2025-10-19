@@ -1,7 +1,7 @@
 package com.zhu.handler.exception;
 
-import com.zhu.enums.AppHttpCodeEnum;
-import com.zhu.utils.ResponseResult;
+import com.zhu.common.enums.AppHttpCodeEnum;
+import com.zhu.common.result.ResponseResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;

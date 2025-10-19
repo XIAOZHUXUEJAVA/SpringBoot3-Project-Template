@@ -2,15 +2,19 @@ package com.zhu.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.zhu.domain.entity.User;
+import com.zhu.domain.vo.uservo.UserDetailVO;
+import com.zhu.domain.vo.uservo.UserMonthStatisticsVO;
+import com.zhu.domain.vo.uservo.UserStatisticsVO;
+import com.zhu.domain.vo.uservo.UserTypeStatisticsVO;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 
 /**
  * 用户表(User)表数据库访问层
+ * Mapper 直接返回 VO，符合最佳实践
  *
  * @author xiaozhu
  * @since 2022-10-04 00:03:08
@@ -44,19 +48,19 @@ public interface UserMapper extends BaseMapper<User> {
     /**
      * 统计各类型用户数量
      *
-     * @return 统计结果
+     * @return 统计结果 VO
      */
-    List<Map<String, Object>> countUsersByType();
+    List<UserTypeStatisticsVO> countUsersByType();
 
     /**
      * 查询用户统计信息
      *
      * @param startTime 开始时间
      * @param endTime 结束时间
-     * @return 统计信息
+     * @return 统计信息 VO
      */
-    Map<String, Object> getUserStatistics(@Param("startTime") Date startTime,
-                                          @Param("endTime") Date endTime);
+    UserStatisticsVO getUserStatistics(@Param("startTime") Date startTime,
+                                       @Param("endTime") Date endTime);
 
     /**
      * 批量查询用户（通过ID列表）
@@ -88,9 +92,9 @@ public interface UserMapper extends BaseMapper<User> {
      * 查询用户及其创建者信息
      *
      * @param status 状态
-     * @return 用户及创建者信息
+     * @return 用户详情 VO（包含创建者信息）
      */
-    List<Map<String, Object>> selectUsersWithCreator(@Param("status") String status);
+    List<UserDetailVO> selectUsersWithCreator(@Param("status") String status);
 
     /**
      * 批量更新用户状态
@@ -108,9 +112,9 @@ public interface UserMapper extends BaseMapper<User> {
      * 按月统计用户注册数量
      *
      * @param year 年份
-     * @return 统计结果
+     * @return 月度统计 VO
      */
-    List<Map<String, Object>> countUsersByMonth(@Param("year") Integer year);
+    List<UserMonthStatisticsVO> countUsersByMonth(@Param("year") Integer year);
 
     /**
      * 动态更新用户信息（只更新非空字段）

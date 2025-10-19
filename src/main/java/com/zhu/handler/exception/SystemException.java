@@ -1,6 +1,6 @@
 package com.zhu.handler.exception;
 
-import com.zhu.enums.AppHttpCodeEnum;
+import com.zhu.common.enums.AppHttpCodeEnum;
 
 /**
  * 全局异常

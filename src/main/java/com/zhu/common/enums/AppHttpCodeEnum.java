@@ -1,4 +1,4 @@
-package com.zhu.enums;
+package com.zhu.common.enums;
 
 
 

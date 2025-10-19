@@ -1,4 +1,4 @@
-package com.zhu.constants;
+package com.zhu.common.constants;
 
 /**
  * 系统常量类

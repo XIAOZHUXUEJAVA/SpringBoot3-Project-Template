@@ -1,9 +1,12 @@
 package com.zhu.controller;
 
 import com.zhu.annoation.SystemLog;
-import com.zhu.domain.entity.User;
+import com.zhu.domain.dto.BatchOperationDTO;
+import com.zhu.domain.dto.userdto.UserAddDTO;
+import com.zhu.domain.dto.userdto.UserQueryDTO;
+import com.zhu.domain.dto.userdto.UserUpdateDTO;
 import com.zhu.service.UserService;
-import com.zhu.utils.ResponseResult;
+import com.zhu.common.result.ResponseResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -17,11 +20,12 @@ import java.util.List;
 
 /**
  * 用户控制器
- * 
+ *
  * 使用MyBatis Plus最佳实践：
  * 1. 简单查询使用Lambda Query（Service层实现）
  * 2. 复杂查询使用XML配置（Mapper层实现）
- * 3. RESTful API设计规范
+ * 3. 使用DTO接收请求参数，使用VO返回响应数据
+ * 4. RESTful API设计规范
  *
  * @author xiaozhu
  * @date 2022年10月04日 0:23
@@ -114,8 +118,8 @@ public class UserController {
     @PostMapping("/add")
     @SystemLog(businessName = "添加用户")
     @Operation(summary = "添加用户", description = "创建新用户")
-    public ResponseResult addUser(@RequestBody @Valid User user) {
-        return userService.addUser(user);
+    public ResponseResult addUser(@RequestBody @Valid UserAddDTO dto) {
+        return userService.addUser(dto);
     }
 
     /**
@@ -124,8 +128,8 @@ public class UserController {
     @PutMapping("/update")
     @SystemLog(businessName = "更新用户")
     @Operation(summary = "更新用户", description = "更新用户信息")
-    public ResponseResult updateUser(@RequestBody @Valid User user) {
-        return userService.updateUser(user);
+    public ResponseResult updateUser(@RequestBody @Valid UserUpdateDTO dto) {
+        return userService.updateUser(dto);
     }
 
     /**
@@ -144,8 +148,8 @@ public class UserController {
     @DeleteMapping("/batch")
     @SystemLog(businessName = "批量删除用户")
     @Operation(summary = "批量删除用户", description = "批量逻辑删除用户")
-    public ResponseResult batchDeleteUsers(@RequestBody List<Long> ids) {
-        return userService.batchDeleteUsers(ids);
+    public ResponseResult batchDeleteUsers(@RequestBody @Valid BatchOperationDTO dto) {
+        return userService.batchDeleteUsers(dto.getIds());
     }
 
     // ==================== 复杂查询接口（使用XML） ====================
@@ -156,17 +160,8 @@ public class UserController {
     @GetMapping("/search/condition")
     @SystemLog(businessName = "多条件查询用户")
     @Operation(summary = "多条件动态查询用户", description = "支持多个条件组合查询用户")
-    public ResponseResult searchUsersByCondition(
-            @RequestParam(required = false) @Parameter(description = "用户名") String userName,
-            @RequestParam(required = false) @Parameter(description = "昵称") String nickName,
-            @RequestParam(required = false) @Parameter(description = "邮箱") String email,
-            @RequestParam(required = false) @Parameter(description = "手机号") String phonenumber,
-            @RequestParam(required = false) @Parameter(description = "状态") String status,
-            @RequestParam(required = false) @Parameter(description = "类型") String type,
-            @RequestParam(required = false) @Parameter(description = "性别") String sex,
-            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") @Parameter(description = "开始时间") Date startTime,
-            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") @Parameter(description = "结束时间") Date endTime) {
-        return userService.searchUsersByCondition(userName, nickName, email, phonenumber, status, type, sex, startTime, endTime);
+    public ResponseResult searchUsersByCondition(UserQueryDTO dto) {
+        return userService.searchUsersByCondition(dto);
     }
 
     /**
@@ -197,8 +192,8 @@ public class UserController {
     @PostMapping("/batch/query")
     @SystemLog(businessName = "批量查询用户")
     @Operation(summary = "批量查询用户", description = "通过ID列表批量查询用户")
-    public ResponseResult getUsersByIds(@RequestBody List<Long> ids) {
-        return userService.getUsersByIds(ids);
+    public ResponseResult getUsersByIds(@RequestBody @Valid BatchOperationDTO dto) {
+        return userService.getUsersByIds(dto.getIds());
     }
 
     /**
@@ -264,8 +259,8 @@ public class UserController {
     @PatchMapping("/update/selective")
     @SystemLog(businessName = "动态更新用户信息")
     @Operation(summary = "动态更新用户信息", description = "只更新提交的非空字段")
-    public ResponseResult updateUserSelective(@RequestBody User user) {
-        return userService.updateUserSelective(user);
+    public ResponseResult updateUserSelective(@RequestBody @Valid UserUpdateDTO dto) {
+        return userService.updateUserSelective(dto);
     }
 
 }
